@@ -1,0 +1,9 @@
+FROM texlive/texlive:latest
+
+WORKDIR /workspace
+
+# Copy the project files
+COPY . .
+
+# Default command to compile a LaTeX file
+CMD ["pdflatex", "-interaction=nonstopmode", "main.tex"]
