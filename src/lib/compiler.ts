@@ -21,9 +21,28 @@ export class LaTeXCompiler {
     try {
       await fs.mkdir(buildDir, { recursive: true });
 
+      // Run pdflatex multiple times to resolve references and bibliography
       const command = `cd "${projectPath}" && /Library/TeX/texbin/pdflatex -output-directory=build -interaction=nonstopmode "${mainFile}"`;
       
-      const { stdout, stderr } = await execAsync(command);
+      // First pass
+      let { stdout, stderr } = await execAsync(command);
+      
+      // Check if there are .bib files and run bibtex if needed
+      const bibFiles = await this.findBibFiles(projectPath);
+      if (bibFiles.length > 0) {
+        const baseName = mainFile.replace('.tex', '');
+        const bibtexCommand = `cd "${buildDir}" && /Library/TeX/texbin/bibtex "${baseName}"`;
+        try {
+          await execAsync(bibtexCommand);
+          // Run pdflatex again after bibtex
+          await execAsync(command);
+        } catch (bibtexError) {
+          console.log('BibTeX warning (non-fatal):', bibtexError);
+        }
+      }
+      
+      // Final pass to resolve all references
+      await execAsync(command);
       
       const pdfPath = path.join(buildDir, mainFile.replace('.tex', '.pdf'));
       const logPath = path.join(buildDir, mainFile.replace('.tex', '.log'));
@@ -51,6 +70,15 @@ export class LaTeXCompiler {
         errors: [`Compilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
         logs: error instanceof Error ? error.message : 'Unknown error'
       };
+    }
+  }
+
+  private async findBibFiles(projectPath: string): Promise<string[]> {
+    try {
+      const files = await fs.readdir(projectPath);
+      return files.filter(file => file.endsWith('.bib'));
+    } catch {
+      return [];
     }
   }
 

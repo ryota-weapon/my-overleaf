@@ -43,3 +43,15 @@ next-env.d.ts
 # papers - ignore all papers except sample-paper
 papers/*
 !papers/sample-paper/
+
+# LaTeX build files
+papers/*/build/
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz

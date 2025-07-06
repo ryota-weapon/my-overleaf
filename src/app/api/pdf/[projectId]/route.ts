@@ -19,10 +19,19 @@ export async function GET(
 
     const pdfBuffer = fs.readFileSync(pdfPath);
 
+    // Get file modification time for cache busting
+    const stats = fs.statSync(pdfPath);
+    const lastModified = stats.mtime.toUTCString();
+    const etag = `"${stats.mtime.getTime()}-${stats.size}"`;
+
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Last-Modified': lastModified,
+        'ETag': etag,
       },
     });
   } catch (error) {

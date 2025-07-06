@@ -1,7 +1,8 @@
 \documentclass{article}
 \usepackage{amsmath}
+\usepackage{cite}
 
-\title{Sample LaTeX Paper}
+\title{Sample LaTeX Paper: Multi-File Organization Demo}
 \author{Your Name}
 \date{\today}
 
@@ -10,54 +11,19 @@
 \maketitle
 
 \begin{abstract}
-This is a sample LaTeX document to demonstrate the functionality of our LaTeX web editor. This paper includes common mathematical notation, sections, and formatting elements typically found in academic papers.
+This is a sample LaTeX document to demonstrate the multi-file functionality of our LaTeX web editor. This paper shows how complex documents can be organized into separate files for better maintainability and collaboration. The document includes mathematical notation, cross-references, and bibliography management \cite{lamport1994latex}.
 \end{abstract}
 
-\section{Introduction}
+% Include section files
+\input{sections/introduction}
+\input{sections/methodology}
+\input{sections/mathematical-equations}
+\input{sections/results}
+\input{sections/lists-and-examples}
+\input{sections/conclusion}
 
-This is the introduction section. LaTeX is a high-quality typesetting system that is particularly well-suited for technical and scientific documentation.
-
-\section{Mathematical Equations}
-
-Here are some examples of mathematical notation:
-
-\subsection{Inline Math}
-The famous equation $E = mc^2$ demonstrates the relationship between energy and mass.
-
-\subsection{Display Math}
-The quadratic formula is:
-\begin{equation}
-x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
-\end{equation}
-
-\subsection{Matrix Example}
-A sample matrix:
-\begin{equation}
-A = \begin{pmatrix}
-1 & 2 & 3 \\
-4 & 5 & 6 \\
-7 & 8 & 9
-\end{pmatrix}
-\end{equation}
-
-\section{Lists}
-
-\subsection{Itemized List}
-\begin{itemize}
-    \item First item
-    \item Second item
-    \item Third item
-\end{itemize}
-
-\subsection{Enumerated List}
-\begin{enumerate}
-    \item First numbered item
-    \item Second numbered item
-    \item Third numbered item
-\end{enumerate}
-
-\section{Conclusion}
-
-This sample document demonstrates various LaTeX features. When you edit this file in your IDE, the web interface should automatically recompile and display the updated PDF.
+% Bibliography
+\bibliographystyle{plain}
+\bibliography{references/sample}
 
 \end{document}
