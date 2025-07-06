@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# papers - ignore all papers except sample-paper
+papers/*
+!papers/sample-paper/
