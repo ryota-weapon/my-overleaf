@@ -107,6 +107,10 @@ check_latex() {
         LATEX_VERSION=$(pdflatex --version | head -n 1)
         echo -e "${GREEN}✓${NC} LaTeX is installed: $LATEX_VERSION"
         
+        # Show the path where LaTeX is installed
+        LATEX_PATH=$(which pdflatex)
+        echo -e "   Path: ${BLUE}$LATEX_PATH${NC}"
+        
         # Check if tlmgr is available
         if command_exists tlmgr; then
             echo -e "${GREEN}✓${NC} tlmgr package manager is available"
@@ -116,27 +120,65 @@ check_latex() {
     else
         echo -e "${RED}✗${NC} LaTeX (pdflatex) is not installed"
         echo ""
+        echo -e "${YELLOW}IMPORTANT: LaTeX is required for this application to work!${NC}"
+        echo ""
         
         if [ "$OS" == "macos" ]; then
             echo "LaTeX installation options for macOS:"
             echo ""
-            echo "1) BasicTeX (Recommended - ~100MB):"
+            echo -e "${GREEN}Option 1: BasicTeX (Recommended - ~100MB):${NC}"
             echo "   brew install --cask basictex"
             echo ""
-            echo "2) Full MacTeX (~4GB):"
+            echo -e "${BLUE}Option 2: Full MacTeX (~4GB):${NC}"
             echo "   brew install --cask mactex"
             echo ""
-            echo "After installation, add to PATH:"
+            echo -e "${YELLOW}After installation:${NC}"
+            echo "1. Add to PATH in your shell profile (~/.zshrc or ~/.bash_profile):"
             echo "   export PATH=\"/Library/TeX/texbin:\$PATH\""
+            echo "2. Restart your terminal"
+            echo "3. Run this setup script again"
+            
+            # Offer to install BasicTeX
+            echo ""
+            read -p "Would you like to install BasicTeX now? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                if command_exists brew; then
+                    echo "Installing BasicTeX..."
+                    brew install --cask basictex
+                    echo ""
+                    echo -e "${GREEN}BasicTeX installed!${NC}"
+                    echo "Please:"
+                    echo "1. Add export PATH=\"/Library/TeX/texbin:\$PATH\" to your shell profile"
+                    echo "2. Restart your terminal"
+                    echo "3. Run ./setup.sh again"
+                else
+                    echo -e "${RED}Homebrew is not installed.${NC}"
+                    echo "Please install Homebrew first: https://brew.sh"
+                fi
+            fi
         elif [ "$OS" == "linux" ] || [ "$OS" == "wsl" ]; then
             echo "Install TeX Live on Linux/WSL:"
             echo ""
-            echo "Ubuntu/Debian:"
+            echo -e "${GREEN}Ubuntu/Debian:${NC}"
             echo "   sudo apt-get update"
             echo "   sudo apt-get install texlive-base texlive-latex-recommended texlive-fonts-recommended"
             echo ""
-            echo "For full installation:"
+            echo -e "${BLUE}For full installation:${NC}"
             echo "   sudo apt-get install texlive-full"
+            echo ""
+            
+            # Offer to install on Ubuntu/Debian
+            if [ -f /etc/debian_version ]; then
+                read -p "Would you like to install LaTeX now? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    echo "Installing LaTeX packages..."
+                    sudo apt-get update
+                    sudo apt-get install -y texlive-base texlive-latex-recommended texlive-fonts-recommended
+                    echo -e "${GREEN}LaTeX installed!${NC}"
+                fi
+            fi
         fi
         
         return 1
