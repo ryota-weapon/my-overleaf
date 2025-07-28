@@ -1,8 +1,12 @@
-\documentclass{article}
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
 \usepackage{amsmath}
-\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
 
-\title{Sample LaTeX Paper: Multi-File Organization Demo}
+\title{Sample LaTeX Document}
 \author{Your Name}
 \date{\today}
 
@@ -10,20 +14,34 @@
 
 \maketitle
 
-\begin{abstract}
-This is a sample LaTeX document to demonstrate the multi-file functionality of our LaTeX web editor. This paper shows how complex documents can be organized into separate files for better maintainability and collaboration. The document includes mathematical notation, cross-references, and bibliography management \cite{lamport1994latex}.
-\end{abstract}
+\section{Introduction}
+Welcome to the LaTeX Web Editor! This is a sample document to demonstrate the basic features of LaTeX.
 
-% Include section files
-\input{sections/introduction}
-\input{sections/methodology}
-\input{sections/mathematical-equations}
-\input{sections/results}
-\input{sections/lists-and-examples}
-\input{sections/conclusion}
+\section{Mathematics}
+LaTeX is excellent for mathematical notation. Here's the quadratic formula:
+\begin{equation}
+    x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+\end{equation}
 
-% Bibliography
-\bibliographystyle{plain}
-\bibliography{references/sample}
+\section{Lists}
+\subsection{Itemized List}
+\begin{itemize}
+    \item First item
+    \item Second item
+    \item Third item
+\end{itemize}
+
+\subsection{Numbered List}
+\begin{enumerate}
+    \item Edit this file in your IDE
+    \item Save to trigger auto-compilation
+    \item View the PDF in your browser
+\end{enumerate}
+
+\section{Text Formatting}
+You can make text \textbf{bold}, \textit{italic}, or \underline{underlined}.
+
+\section{Conclusion}
+This sample document shows basic LaTeX features. Feel free to modify and experiment!
 
 \end{document}

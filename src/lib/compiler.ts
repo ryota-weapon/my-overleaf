@@ -21,49 +21,108 @@ export class LaTeXCompiler {
     try {
       await fs.mkdir(buildDir, { recursive: true });
 
-      // Run pdflatex multiple times to resolve references and bibliography
-      const command = `cd "${projectPath}" && /Library/TeX/texbin/pdflatex -output-directory=build -interaction=nonstopmode "${mainFile}"`;
+      // Detect document class to determine compiler
+      const texContent = await fs.readFile(texFilePath, 'utf-8');
+      const isJapanese = texContent.includes('jsreport') || texContent.includes('jsarticle') || texContent.includes('jsbook');
       
-      // First pass
-      let { stdout, stderr } = await execAsync(command);
-      
-      // Check if there are .bib files and run bibtex if needed
-      const bibFiles = await this.findBibFiles(projectPath);
-      if (bibFiles.length > 0) {
-        const baseName = mainFile.replace('.tex', '');
-        const bibtexCommand = `cd "${buildDir}" && /Library/TeX/texbin/bibtex "${baseName}"`;
-        try {
-          await execAsync(bibtexCommand);
-          // Run pdflatex again after bibtex
-          await execAsync(command);
-        } catch (bibtexError) {
-          console.log('BibTeX warning (non-fatal):', bibtexError);
+      if (isJapanese) {
+        // Use platex for Japanese documents
+        const platexCommand = `cd "${projectPath}" && /Library/TeX/texbin/platex -interaction=nonstopmode "${mainFile}"`;
+        
+        // First pass
+        let { stdout, stderr } = await execAsync(platexCommand);
+        
+        // Check if there are .bib files and run jbibtex if needed
+        const bibFiles = await this.findBibFiles(projectPath);
+        if (bibFiles.length > 0) {
+          const baseName = mainFile.replace('.tex', '');
+          const jbibtexCommand = `cd "${projectPath}" && /Library/TeX/texbin/jbibtex "${baseName}"`;
+          try {
+            await execAsync(jbibtexCommand);
+            // Run platex again after jbibtex
+            await execAsync(platexCommand);
+          } catch (bibtexError) {
+            console.log('JBibTeX warning (non-fatal):', bibtexError);
+          }
         }
-      }
-      
-      // Final pass to resolve all references
-      await execAsync(command);
-      
-      const pdfPath = path.join(buildDir, mainFile.replace('.tex', '.pdf'));
-      const logPath = path.join(buildDir, mainFile.replace('.tex', '.log'));
-      
-      const pdfExists = await fs.access(pdfPath).then(() => true).catch(() => false);
-      
-      let logs = '';
-      try {
-        logs = await fs.readFile(logPath, 'utf-8');
-      } catch {
-        logs = stdout + stderr;
-      }
+        
+        // Final pass to resolve all references
+        await execAsync(platexCommand);
+        
+        // Convert DVI to PDF
+        const dviPath = path.join(projectPath, mainFile.replace('.tex', '.dvi'));
+        const dvipdfmxCommand = `cd "${projectPath}" && /Library/TeX/texbin/dvipdfmx "${mainFile.replace('.tex', '.dvi')}"`;
+        await execAsync(dvipdfmxCommand);
+        
+        // Move PDF to build directory
+        const sourcePdfPath = path.join(projectPath, mainFile.replace('.tex', '.pdf'));
+        const targetPdfPath = path.join(buildDir, mainFile.replace('.tex', '.pdf'));
+        await fs.rename(sourcePdfPath, targetPdfPath);
+        
+        const logPath = path.join(projectPath, mainFile.replace('.tex', '.log'));
+        
+        const pdfExists = await fs.access(targetPdfPath).then(() => true).catch(() => false);
+        
+        let logs = '';
+        try {
+          logs = await fs.readFile(logPath, 'utf-8');
+        } catch {
+          logs = stdout + stderr;
+        }
 
-      const errors = this.parseErrors(logs);
+        const errors = this.parseErrors(logs);
 
-      return {
-        success: pdfExists && errors.length === 0,
-        pdfPath: pdfExists ? pdfPath : undefined,
-        errors: errors.length > 0 ? errors : undefined,
-        logs
-      };
+        return {
+          success: pdfExists && errors.length === 0,
+          pdfPath: pdfExists ? targetPdfPath : undefined,
+          errors: errors.length > 0 ? errors : undefined,
+          logs
+        };
+      } else {
+        // Use pdflatex for English/standard documents
+        const command = `cd "${projectPath}" && /Library/TeX/texbin/pdflatex -output-directory=build -interaction=nonstopmode "${mainFile}"`;
+        
+        // First pass
+        let { stdout, stderr } = await execAsync(command);
+        
+        // Check if there are .bib files and run bibtex if needed
+        const bibFiles = await this.findBibFiles(projectPath);
+        if (bibFiles.length > 0) {
+          const baseName = mainFile.replace('.tex', '');
+          const bibtexCommand = `cd "${buildDir}" && /Library/TeX/texbin/bibtex "${baseName}"`;
+          try {
+            await execAsync(bibtexCommand);
+            // Run pdflatex again after bibtex
+            await execAsync(command);
+          } catch (bibtexError) {
+            console.log('BibTeX warning (non-fatal):', bibtexError);
+          }
+        }
+        
+        // Final pass to resolve all references
+        await execAsync(command);
+        
+        const pdfPath = path.join(buildDir, mainFile.replace('.tex', '.pdf'));
+        const logPath = path.join(buildDir, mainFile.replace('.tex', '.log'));
+        
+        const pdfExists = await fs.access(pdfPath).then(() => true).catch(() => false);
+        
+        let logs = '';
+        try {
+          logs = await fs.readFile(logPath, 'utf-8');
+        } catch {
+          logs = stdout + stderr;
+        }
+
+        const errors = this.parseErrors(logs);
+
+        return {
+          success: pdfExists && errors.length === 0,
+          pdfPath: pdfExists ? pdfPath : undefined,
+          errors: errors.length > 0 ? errors : undefined,
+          logs
+        };
+      }
     } catch (error) {
       return {
         success: false,
